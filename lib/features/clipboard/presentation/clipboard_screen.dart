@@ -23,6 +23,8 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
   bool _privateMode = false;
   int _maxHistoryItems = 25;
   StreamSubscription? _msgSub;
+  Timer? _autoSyncTimer;
+  String _lastSyncedText = '';
 
   @override
   void initState() {
@@ -32,21 +34,20 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
         if (msg.type == CommandType.clipboardContent) {
           final text = msg.payload['text'] as String? ?? '';
           if (text.isNotEmpty) {
+            _lastSyncedText = text;
             Clipboard.setData(ClipboardData(text: text));
             final isUrl =
                 text.startsWith('http://') || text.startsWith('https://');
-            setState(() {
-              _timelineItems.insert(
-                0,
-                ClipboardItemModel(
-                  id: 'clip-${DateTime.now().millisecondsSinceEpoch}',
-                  content: text,
-                  sourceDevice: 'KRISNA-PC',
-                  timestamp: DateTime.now(),
-                  isUrl: isUrl,
-                ),
-              );
-            });
+            ref.read(clipboardTimelineProvider.notifier).addItem(
+              ClipboardItemModel(
+                id: 'clip-${DateTime.now().millisecondsSinceEpoch}',
+                content: text,
+                sourceDevice: 'KRISNA-PC',
+                timestamp: DateTime.now(),
+                isUrl: isUrl,
+              ),
+              maxItems: _maxHistoryItems,
+            );
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -64,8 +65,52 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
     });
   }
 
+  void _toggleAutoSync(bool val) {
+    setState(() => _autoSync = val);
+    _autoSyncTimer?.cancel();
+    if (_autoSync) {
+      _autoSyncTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+        if (!_autoSync) return;
+        try {
+          final data = await Clipboard.getData(Clipboard.kTextPlain);
+          final text = data?.text?.trim() ?? '';
+          if (text.isNotEmpty &&
+              text != _lastSyncedText &&
+              text != _sendController.text) {
+            _lastSyncedText = text;
+            final transport = ref.read(transportServiceProvider);
+            final message = ProtocolMessage(
+              messageId: DateTime.now().millisecondsSinceEpoch.toString(),
+              type: CommandType.clipboardSend,
+              deviceId: 'mobile-client',
+              sessionId: 'sess-active',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              nonce: DateTime.now().microsecondsSinceEpoch.toString(),
+              payload: {'text': text, 'isAutoSync': true},
+            );
+            transport.sendMessage(message);
+
+            final isUrl =
+                text.startsWith('http://') || text.startsWith('https://');
+            ref.read(clipboardTimelineProvider.notifier).addItem(
+              ClipboardItemModel(
+                id: 'clip-${DateTime.now().millisecondsSinceEpoch}',
+                content: text,
+                sourceDevice: 'Ponsel (Otomatis)',
+                timestamp: DateTime.now(),
+                isUrl: isUrl,
+              ),
+              maxItems: _maxHistoryItems,
+            );
+          }
+        } catch (_) {}
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _autoSyncTimer?.cancel();
     _msgSub?.cancel();
     _sendController.dispose();
     super.dispose();
@@ -91,30 +136,6 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
     );
   }
 
-  final List<ClipboardItemModel> _timelineItems = [
-    ClipboardItemModel(
-      id: 'clip-1',
-      sourceDevice: 'KRISNA-PC',
-      content: 'https://flutter.dev/multi-platform/desktop',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
-      isUrl: true,
-    ),
-    ClipboardItemModel(
-      id: 'clip-2',
-      sourceDevice: 'Ponsel',
-      content: '192.168.1.102:8945',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 24)),
-      isUrl: false,
-    ),
-    ClipboardItemModel(
-      id: 'clip-3',
-      sourceDevice: 'KRISNA-PC',
-      content: 'Catatan Rapat Sinkronisasi Lintas Ecosystem Q4',
-      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 15)),
-      isUrl: false,
-    ),
-  ];
-
   void _sendClipboardToPc() {
     final text = _sendController.text.trim();
     if (text.isEmpty) return;
@@ -133,22 +154,17 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
 
     if (!_privateMode) {
       final isUrl = text.startsWith('http://') || text.startsWith('https://');
-      setState(() {
-        _timelineItems.insert(
-          0,
-          ClipboardItemModel(
-            id: 'clip-${DateTime.now().millisecondsSinceEpoch}',
-            content: text,
-            sourceDevice: 'Ponsel',
-            timestamp: DateTime.now(),
-            isUrl: isUrl,
-            isPrivate: false,
-          ),
-        );
-        if (_timelineItems.length > _maxHistoryItems) {
-          _timelineItems.removeLast();
-        }
-      });
+      ref.read(clipboardTimelineProvider.notifier).addItem(
+        ClipboardItemModel(
+          id: 'clip-${DateTime.now().millisecondsSinceEpoch}',
+          content: text,
+          sourceDevice: 'Ponsel',
+          timestamp: DateTime.now(),
+          isUrl: isUrl,
+          isPrivate: false,
+        ),
+        maxItems: _maxHistoryItems,
+      );
     }
 
     ref
@@ -190,15 +206,11 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
   }
 
   void _deleteItem(String id) {
-    setState(() {
-      _timelineItems.removeWhere((item) => item.id == id);
-    });
+    ref.read(clipboardTimelineProvider.notifier).removeItem(id);
   }
 
   void _clearHistory() {
-    setState(() {
-      _timelineItems.clear();
-    });
+    ref.read(clipboardTimelineProvider.notifier).clearAll();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Riwayat linimasa papan klip dibersihkan'),
@@ -209,6 +221,8 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final timelineItems = ref.watch(clipboardTimelineProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Linimasa Papan Klip'),
@@ -216,7 +230,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
           IconButton(
             icon: const Icon(Icons.delete_sweep_rounded),
             tooltip: 'Bersihkan Riwayat',
-            onPressed: _timelineItems.isEmpty ? null : _clearHistory,
+            onPressed: timelineItems.isEmpty ? null : _clearHistory,
           ),
         ],
       ),
@@ -334,7 +348,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                       style: TextStyle(fontSize: 12),
                     ),
                     value: _autoSync,
-                    onChanged: (val) => setState(() => _autoSync = val),
+                    onChanged: _toggleAutoSync,
                   ),
                   const Divider(),
                   ListTile(
@@ -379,7 +393,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                   ),
                 ),
                 Text(
-                  '${_timelineItems.length} Tersimpan',
+                  '${timelineItems.length} Tersimpan',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondaryDark,
@@ -388,7 +402,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (_timelineItems.isEmpty)
+            if (timelineItems.isEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
@@ -417,7 +431,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                 ),
               )
             else
-              ..._timelineItems.map((item) {
+              ...timelineItems.map((item) {
                 return Card(
                   margin: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: Padding(

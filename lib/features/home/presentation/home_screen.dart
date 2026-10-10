@@ -7,6 +7,7 @@ import '../../connection/presentation/connection_controller.dart';
 import '../../../core/network/protocol_message.dart';
 import '../../../mock/mock_providers.dart';
 import '../../companion/domain/companion_context_model.dart';
+import '../../file_transfer/domain/file_transfer_model.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,9 +17,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final CompanionContextModel _activeContext =
-      CompanionContextModel.presentationActive;
-
   void _sendCommand(CommandType type, [Map<String, dynamic>? payload]) {
     final transport = ref.read(transportServiceProvider);
     final message = ProtocolMessage(
@@ -74,6 +72,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final connectionState = ref.watch(connectionControllerProvider);
     final devices = ref.watch(devicesListProvider);
     final nearlockConfig = ref.watch(nearlockConfigProvider);
+    final fileTransfers = ref.watch(fileTransferListProvider);
+
+    final isTransferring = fileTransfers.any(
+      (t) => t.status == TransferStatus.transferring,
+    );
+    final activeContext = isTransferring
+        ? CompanionContextModel.fileTransferActive
+        : CompanionContextModel.presentationActive;
 
     final otherTrustedDevices = devices
         .where((d) => d.isTrusted && d.id != connectionState.connectedDeviceId)
@@ -376,8 +382,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           AppSpacing.radiusSm,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.co_present_rounded,
+                      child: Icon(
+                        isTransferring
+                            ? Icons.sync_rounded
+                            : Icons.co_present_rounded,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -388,14 +396,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _activeContext.title,
+                            activeContext.title,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            _activeContext.description,
+                            activeContext.description,
                             style: TextStyle(
                               fontSize: 11,
                               color: Theme.of(
@@ -412,7 +420,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           horizontal: AppSpacing.md,
                         ),
                       ),
-                      onPressed: () => context.push(_activeContext.routePath),
+                      onPressed: () => context.push(activeContext.routePath),
                       child: const Text('BUKA'),
                     ),
                   ],

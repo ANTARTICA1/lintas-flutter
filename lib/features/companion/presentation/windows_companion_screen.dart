@@ -395,8 +395,10 @@ class _WindowsCompanionScreenState
                                 style: TextStyle(fontSize: 12),
                               ),
                               value: _pauseConnections,
-                              onChanged: (val) =>
-                                  setState(() => _pauseConnections = val),
+                              onChanged: (val) {
+                                LanServerService.instance.isPaused = val;
+                                setState(() => _pauseConnections = val);
+                              },
                             ),
                             const Divider(),
                             ListTile(

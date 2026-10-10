@@ -25,6 +25,7 @@ class LanServerService {
   String _localIp = '127.0.0.1';
   int _port = 8945;
   bool _isRunning = false;
+  bool isPaused = false;
 
   LanServerService._internal();
 
@@ -156,6 +157,7 @@ class LanServerService {
   }
 
   void _executeCommand(WebSocket socket, ProtocolMessage message) {
+    if (isPaused && message.type != CommandType.ping) return;
     final input = WindowsInputService.instance;
 
     switch (message.type) {
@@ -270,6 +272,22 @@ class LanServerService {
 
       case CommandType.taskView:
         input.taskView();
+        break;
+
+      case CommandType.screenshot:
+        input.screenshot();
+        break;
+
+      case CommandType.restartPc:
+        input.restartPc();
+        break;
+
+      case CommandType.shutdownPc:
+        input.shutdownPc();
+        break;
+
+      case CommandType.sleepPc:
+        input.sleepPc();
         break;
 
       case CommandType.presentationNext:

@@ -158,4 +158,57 @@ void main() {
     expect(find.text('Papan Ketik'), findsOneWidget);
     expect(find.text('Instant Drop'), findsOneWidget);
   });
+
+  test('Pengujian ClipboardTimelineNotifier operasi penambahan dan pembatasan item', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(clipboardTimelineProvider), isEmpty);
+
+    final item1 = ClipboardItemModel(
+      id: 'clip-101',
+      content: 'Teks Pertama',
+      sourceDevice: 'Ponsel',
+      timestamp: DateTime.now(),
+    );
+    container.read(clipboardTimelineProvider.notifier).addItem(item1, maxItems: 2);
+
+    expect(container.read(clipboardTimelineProvider).length, 1);
+    expect(container.read(clipboardTimelineProvider).first.content, 'Teks Pertama');
+
+    // Duplicate identical consecutive item should be ignored
+    container.read(clipboardTimelineProvider.notifier).addItem(item1, maxItems: 2);
+    expect(container.read(clipboardTimelineProvider).length, 1);
+
+    final item2 = ClipboardItemModel(
+      id: 'clip-102',
+      content: 'Teks Kedua',
+      sourceDevice: 'Ponsel',
+      timestamp: DateTime.now(),
+    );
+    container.read(clipboardTimelineProvider.notifier).addItem(item2, maxItems: 2);
+    expect(container.read(clipboardTimelineProvider).length, 2);
+
+    // Limit cap
+    final item3 = ClipboardItemModel(
+      id: 'clip-103',
+      content: 'Teks Ketiga',
+      sourceDevice: 'Ponsel',
+      timestamp: DateTime.now(),
+    );
+    container.read(clipboardTimelineProvider.notifier).addItem(item3, maxItems: 2);
+    expect(container.read(clipboardTimelineProvider).length, 2);
+    expect(container.read(clipboardTimelineProvider).first.content, 'Teks Ketiga');
+
+    container.read(clipboardTimelineProvider.notifier).clearAll();
+    expect(container.read(clipboardTimelineProvider), isEmpty);
+  });
+
+  test('Pengujian kontrol jeda koneksi LanServerService', () {
+    final server = LanServerService.instance;
+    expect(server.isPaused, false);
+    server.isPaused = true;
+    expect(server.isPaused, true);
+    server.isPaused = false;
+  });
 }

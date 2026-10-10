@@ -52,12 +52,35 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
       _errorMessage = null;
     });
 
-    final payload = QrPayload.decode(rawCode.trim());
+    final trimmed = rawCode.trim();
+    var payload = QrPayload.decode(trimmed);
+
+    // Jika bukan base64 QR payload, periksa apakah pengguna memasukkan alamat IP atau host PC secara manual
+    if (payload == null) {
+      final clean = trimmed
+          .replaceAll('ws://', '')
+          .replaceAll('http://', '')
+          .replaceAll('/', '');
+      final parts = clean.split(':');
+      final host = parts[0].trim();
+      final port = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 8945) : 8945;
+
+      final ipPattern = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost)$');
+      if (ipPattern.hasMatch(host)) {
+        payload = QrPayload.generate(
+          deviceName: 'PC ($host)',
+          host: host,
+          port: port,
+          validityDurationSeconds: 600,
+        );
+      }
+    }
+
     if (payload == null) {
       setState(() {
         _isProcessing = false;
         _errorMessage =
-            'Format kode QR tidak valid atau bukan berasal dari Lintas Companion.';
+            'Format tidak valid. Masukkan kode QR Lintas atau alamat IP PC (contoh: 192.168.1.102:8945).';
       });
       return;
     }
@@ -71,10 +94,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
       return;
     }
 
+    final validPayload = payload;
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       setState(() => _isProcessing = false);
-      _showConfirmationDialog(payload);
+      _showConfirmationDialog(validPayload);
     });
   }
 

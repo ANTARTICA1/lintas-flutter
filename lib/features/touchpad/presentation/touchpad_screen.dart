@@ -133,78 +133,132 @@ class _TouchpadScreenState extends ConsumerState<TouchpadScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (details) {
-                    _lastPosition = details.localPosition;
-                  },
-                  onPanUpdate: (details) {
-                    final delta =
-                        (details.localPosition - _lastPosition) * _sensitivity;
-                    _lastPosition = details.localPosition;
-                    _sendTouchpadEvent(CommandType.mouseMove, {
-                      'dx': delta.dx,
-                      'dy': delta.dy,
-                    });
-                  },
-                  onTap: () {
-                    _sendTouchpadEvent(CommandType.mouseClick, {
-                      'button': 'left',
-                    });
-                  },
-                  onDoubleTap: () {
-                    _sendTouchpadEvent(CommandType.mouseClick, {
-                      'button': 'double_left',
-                    });
-                  },
-                  onLongPress: () {
-                    _sendTouchpadEvent(CommandType.mouseClick, {
-                      'button': 'right',
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.touch_app_rounded,
-                            size: 48,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withAlpha(80),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            'Area Sentuh Trackpad',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withAlpha(120),
-                              fontWeight: FontWeight.w500,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onPanStart: (details) {
+                          _lastPosition = details.localPosition;
+                        },
+                        onPanUpdate: (details) {
+                          final delta =
+                              (details.localPosition - _lastPosition) * _sensitivity;
+                          _lastPosition = details.localPosition;
+                          _sendTouchpadEvent(CommandType.mouseMove, {
+                            'dx': delta.dx,
+                            'dy': delta.dy,
+                          });
+                        },
+                        onTap: () {
+                          _sendTouchpadEvent(CommandType.mouseClick, {
+                            'button': 'left',
+                          });
+                        },
+                        onDoubleTap: () {
+                          _sendTouchpadEvent(CommandType.mouseClick, {
+                            'button': 'double_left',
+                          });
+                        },
+                        onLongPress: () {
+                          _sendTouchpadEvent(CommandType.mouseClick, {
+                            'button': 'right',
+                          });
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            '1 jari: gerak kursor • Ketuk: klik kiri • Tahan: klik kanan',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withAlpha(80),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.touch_app_rounded,
+                                  size: 48,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withAlpha(80),
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  'Area Sentuh Trackpad',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withAlpha(120),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  '1 jari: gerak kursor • Ketuk: klik kiri • Tahan: klik kanan',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withAlpha(80),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: AppSpacing.sm),
+                    // Vertical Scroll Strip
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onVerticalDragUpdate: (details) {
+                        final dy = -details.primaryDelta! * 0.15 * _sensitivity;
+                        _sendTouchpadEvent(CommandType.mouseScroll, {'dy': dy});
+                      },
+                      child: Container(
+                        width: 44,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.keyboard_arrow_up_rounded,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            RotatedBox(
+                              quarterTurns: 3,
+                              child: Text(
+                                'GULIR',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                  color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -234,7 +288,7 @@ class _TouchpadScreenState extends ConsumerState<TouchpadScreen> {
                       child: const Text('KLIK KIRI'),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     flex: 2,
                     child: OutlinedButton(
@@ -246,12 +300,29 @@ class _TouchpadScreenState extends ConsumerState<TouchpadScreen> {
                         ),
                       ),
                       onPressed: () {
-                        _sendTouchpadEvent(CommandType.mouseScroll, {'dy': -1});
+                        _sendTouchpadEvent(CommandType.mouseScroll, {'dy': 1.0});
                       },
-                      child: const Icon(Icons.unfold_more_rounded),
+                      child: const Icon(Icons.arrow_upward_rounded, size: 18),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    flex: 2,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        _sendTouchpadEvent(CommandType.mouseScroll, {'dy': -1.0});
+                      },
+                      child: const Icon(Icons.arrow_downward_rounded, size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     flex: 3,
                     child: OutlinedButton(

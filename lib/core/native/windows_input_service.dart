@@ -51,6 +51,7 @@ class WindowsInputService {
   static const int vkDown = 0x28;
   static const int vkLWin = 0x5B;
 
+  static const int vkSnapshot = 0x2C;
   static const int vkVolumeMute = 0xAD;
   static const int vkVolumeDown = 0xAE;
   static const int vkVolumeUp = 0xAF;
@@ -212,5 +213,31 @@ class WindowsInputService {
 
   void presentationBlank() {
     pressKey(0x42);
+  }
+
+  void screenshot() {
+    if (!isSupported) return;
+    pressKeyWithModifiers(vkSnapshot, win: true);
+  }
+
+  void restartPc() {
+    if (!Platform.isWindows) return;
+    try {
+      Process.run('shutdown', ['/r', '/t', '0']);
+    } catch (_) {}
+  }
+
+  void shutdownPc() {
+    if (!Platform.isWindows) return;
+    try {
+      Process.run('shutdown', ['/s', '/t', '0']);
+    } catch (_) {}
+  }
+
+  void sleepPc() {
+    if (!Platform.isWindows) return;
+    try {
+      Process.run('rundll32.exe', ['powrprof.dll,SetSuspendState', '0,1,0']);
+    } catch (_) {}
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class ClipboardItemModel {
   final String id;
   final String content;
@@ -56,3 +58,31 @@ class ClipboardItemModel {
     );
   }
 }
+
+class ClipboardTimelineNotifier extends Notifier<List<ClipboardItemModel>> {
+  @override
+  List<ClipboardItemModel> build() => [];
+
+  void addItem(ClipboardItemModel item, {int maxItems = 25}) {
+    if (state.isNotEmpty && state.first.content == item.content) return;
+    final updated = [item, ...state];
+    if (updated.length > maxItems) {
+      state = updated.sublist(0, maxItems);
+    } else {
+      state = updated;
+    }
+  }
+
+  void removeItem(String id) {
+    state = state.where((item) => item.id != id).toList();
+  }
+
+  void clearAll() {
+    state = [];
+  }
+}
+
+final clipboardTimelineProvider =
+    NotifierProvider<ClipboardTimelineNotifier, List<ClipboardItemModel>>(
+  ClipboardTimelineNotifier.new,
+);
