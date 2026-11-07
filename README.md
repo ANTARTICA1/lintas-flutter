@@ -6,6 +6,13 @@ Aplikasi ini dirancang untuk memudahkan produktivitas pengguna tanpa memerlukan 
 
 ---
 
+
+## Tangkapan Layar Aplikasi
+
+### Windows Companion Host Dashboard (Port 8945, QR Pairing & Drop Zone)
+![Windows Companion Dashboard](docs/screenshots/lintas.jpg)
+
+---
 ## Gambaran Cara Kerja
 
 Aplikasi Lintas menggunakan arsitektur peer-to-peer berbasis Client-Server lokal:
