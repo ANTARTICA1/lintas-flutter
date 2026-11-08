@@ -1,143 +1,133 @@
-# Lintas
+# Lintas - Cross-Device Local Productivity Ecosystem
 
-Lintas adalah aplikasi ekosistem lintas perangkat (cross-device) yang menghubungkan smartphone Android dengan komputer berbasis Windows melalui jaringan lokal (LAN) secara langsung, aman, dan berkecepatan tinggi.
+Lintas is a cross-device productivity platform that seamlessly bridges Android smartphones with Windows personal computers over local Wi-Fi networks (LAN) with zero external internet dependencies or third-party cloud relays.
 
-Aplikasi ini dirancang untuk memudahkan produktivitas pengguna tanpa memerlukan koneksi internet eksternal atau server pihak ketiga. Semua komunikasi data berjalan langsung antara perangkat Android dan PC Windows di dalam jaringan Wi-Fi yang sama.
+Designed for security, speed, and privacy, all data exchanges, input signals, and file transfers execute peer-to-peer directly between devices on the same local subnet.
 
 ---
 
-
-## Tangkapan Layar Aplikasi
+## Application Interface Preview
 
 ### Windows Companion Host Dashboard (Port 8945, QR Pairing & Drop Zone)
 ![Windows Companion Dashboard](docs/screenshots/lintas.jpg)
 
 ---
-## Gambaran Cara Kerja
 
-Aplikasi Lintas menggunakan arsitektur peer-to-peer berbasis Client-Server lokal:
+## Architectural Mechanics
 
-1. Mode Windows (Host Companion Server):
-   Saat dijalankan pada komputer Windows, aplikasi secara otomatis memulai server HTTP dan WebSocket lokal pada port 8945. Server ini menampilkan kode QR yang memuat informasi koneksi (IP lokal, port, dan token sesi yang memiliki masa kedaluwarsa).
+Lintas implements an asynchronous local Client-Server peer-to-peer architecture:
 
-2. Mode Android (Mobile Controller):
-   Saat dijalankan pada smartphone Android, aplikasi dapat langsung memindai kode QR dari layar PC atau menggunakan fitur pemindaian otomatis (Auto-Discovery) untuk menemukan PC di jaringan Wi-Fi lokal.
+1. Windows Host Companion Server:
+   When launched on Windows, the application initiates an embedded HTTP and WebSocket server bound to local port 8945. It renders an ephemeral QR code encoding local connection parameters (LAN IP, port, session nonce, and time-expiring cryptographic tokens).
 
-3. Komunikasi Dua Arah:
-   Setelah terhubung melalui WebSocket dan HTTP, kedua perangkat dapat saling bertukar perintah pengendali, sinkronisasi papan klip, maupun pengiriman berkas berukuran besar secara instan.
+2. Android Mobile Controller:
+   On Android, the client connects instantaneously by scanning the QR code with the device camera or utilizing automated UDP broadcast auto-discovery to detect active Windows hosts across the local Wi-Fi subnet.
 
----
-
-## Fitur Lengkap
-
-### 1. Pairing Cepat dan Aman
-- Pemindaian Kode QR: Terhubung dalam hitungan detik dengan memindai kode QR berwaktu kedaluwarsa pada layar PC.
-- LAN Auto-Discovery: Deteksi otomatis PC yang sedang aktif pada subnet jaringan Wi-Fi yang sama tanpa perlu mengetikkan alamat IP secara manual.
-
-### 2. Remote Touchpad
-- Kontrol Kursor: Gerakkan kursor PC secara mulus melalui layar sentuh smartphone.
-- Dukungan Gestur: Mendukung ketukan untuk klik kiri, ketukan dua jari untuk klik kanan, gulir halaman (scrolling), dan penahanan untuk drag-and-drop.
-
-### 3. Keyboard Virtual
-- Input Teks Langsung: Ketik kalimat atau teks panjang dari ponsel dan kirimkan langsung ke PC.
-- Tombol Aksi Khusus: Mendukung tombol fungsional seperti Enter, Backspace, Spasi, Tab, dan pintasan navigasi.
-
-### 4. Instant Drop (Transfer Berkas Berkecepatan Tinggi)
-- Pengiriman Berkas Dua Arah: Kirim berkas dari HP ke PC atau dari PC ke HP melalui jaringan lokal.
-- Kecepatan Penuh Jaringan LAN: Kecepatan transfer memanfaatkan kapasitas maksimal router Wi-Fi lokal tanpa pembatasan kuota internet.
-- Verifikasi Integritas SHA-256: Setiap transfer berkas diverifikasi menggunakan algoritma hash SHA-256 untuk memastikan data tidak rusak atau korup.
-
-### 5. Universal Clipboard (Sinkronisasi Papan Klip)
-- Pemantauan Papan Klip Otomatis: Teks atau tautan URL yang disalin di satu perangkat dapat segera dilihat dan digunakan di perangkat lainnya.
-- Deteksi Tautan Otomatis: Tautan web yang disalin ditandai secara otomatis sehingga dapat langsung dibuka melalui browser.
-
-### 6. NearLock (Kunci Jarak Dekat)
-- Pemantauan Status Kehadiran: Memantau keterhubungan perangkat secara berkala.
-- Otomasi Kunci Layar: Memungkinkan pengiriman perintah penguncian PC saat ponsel berada di luar jangkauan atau saat pengguna meninggalkan meja kerja.
-
-### 7. Mode Presentasi
-- Pengendali Slide: Navigasi slide maju (Next) dan mundur (Previous) untuk aplikasi presentasi seperti PowerPoint atau PDF.
-- Fungsi Tambahan: Fitur layar hitam (Black Screen) dan penghitung waktu presentasi untuk memantau durasi presentasi Anda.
+3. Bi-Directional Low-Latency Exchange:
+   Once the WebSocket channel is established, devices exchange real-time pointer coordinates, modifier key inputs, clipboard mutations, and multi-gigabyte binary files at full local router speeds.
 
 ---
 
-## Arsitektur dan Teknologi
+## Core Capabilities
 
-- Framework: Flutter (Mendukung target platform Android dan Windows Desktop)
-- Bahasa Pemrograman: Dart, C++ (untuk runner Windows)
-- Manajemen State: Flutter Riverpod
-- Manajemen Rute: GoRouter (dengan pemilihan rute otomatis berdasarkan platform)
-- Protokol Jaringan:
-  - HttpServer dan HttpClient bawaan Dart
-  - WebSocket untuk komunikasi perintah real-time berlatensi rendah
-- Kriptografi dan Hash: Paket crypto (perhitungan checksum berkas SHA-256)
-- Pembacaan QR: Paket mobile_scanner (Android) dan qr_flutter (Windows)
+### 1. Rapid Pairing and Auto-Discovery
+- Ephemeral QR Code Handshake: Connect within seconds by scanning a time-expiring QR code directly from the PC display.
+- LAN Subnet Auto-Discovery: Automated broadcast scanning detects active Lintas companion hosts without requiring manual IP entry.
+
+### 2. Multi-Touch Remote Touchpad
+- High-Frequency Cursor Tracking: Fluid desktop cursor positioning via the mobile touch surface.
+- Native Gesture Mapping: Supports single-finger primary clicks, two-finger secondary clicks, smooth two-finger vertical scrolling, and hold-to-drag interactions.
+
+### 3. Virtual Hardware Keyboard
+- Text Injection: Stream continuous text or lengthy paragraphs directly into the active Windows desktop focus.
+- Modifier & Control Keys: Full support for functional modifier keys (Ctrl, Alt, Shift, Tab, Enter, Backspace, Esc, and arrow navigation).
+
+### 4. Instant Drop (High-Speed Local File Transfer)
+- Bi-Directional File Transmission: Dispatch large files from mobile to PC or from PC to mobile across the local network.
+- Uncapped LAN Bandwidth: Transfers operate at the maximum physical speed of your local Wi-Fi router, consuming zero external data quotas.
+- SHA-256 Integrity Verification: Computes cryptographic SHA-256 checksums before and after transit to guarantee zero data corruption.
+
+### 5. Universal Bi-Directional Clipboard
+- Real-Time Clipboard Synchronization: Strings and links copied on one device appear immediately on the companion device clipboard.
+- Automatic URL Recognition: Intelligently detects web links, offering one-click triggers to open URLs in the destination system browser.
+
+### 6. NearLock (Proximity-Based Workstation Lock)
+- Presence Monitoring: Continuously evaluates connection ping latency and signal presence.
+- Automated Security Lockout: Issues automated workstation lock commands (`Win + L`) when the smartphone leaves local proximity beyond established grace periods.
+
+### 7. Presentation Remote Mode
+- Slide Controller: Navigate slide decks forward and backward across presentation software (PowerPoint, Keynote, PDF Viewers).
+- Utility Tools: Integrated display blackout toggle and speech timer to monitor presentation duration.
 
 ---
 
-## Persyaratan Sistem
+## Technology Stack
 
-### Perangkat Komputer (Windows)
-- Sistem Operasi: Windows 10 versi 1809 atau Windows 11 (64-bit)
-- Jaringan: Terhubung ke jaringan lokal (Wi-Fi atau kabel LAN)
-- Port: Port 8945 harus diizinkan pada Windows Firewall untuk koneksi masuk lokal
-
-### Perangkat Smartphone (Android)
-- Sistem Operasi: Android 7.0 (Nougat) atau versi lebih baru
-- Fitur Perangkat: Kamera (untuk pemindaian kode QR) dan Wi-Fi aktif
+- Framework: Flutter (targeting Android Mobile and Windows Desktop)
+- Languages: Dart 3.x, C++ (Windows Native Runner & Win32 API bridge)
+- State Architecture: Flutter Riverpod
+- Navigation: GoRouter with platform-adaptive routing
+- Networking: Dart `HttpServer`, `HttpClient`, and low-latency WebSockets
+- Cryptography: SHA-256 streaming hashing via `crypto` package
+- QR Engine: `mobile_scanner` (Android) and `qr_flutter` (Windows)
 
 ---
 
-## Panduan Menjalankan Aplikasi
+## System Requirements
 
-### 1. Menyiapkan Lingkungan Pengembangan
-Pastikan perangkat Anda telah terpasang:
-- Flutter SDK (versi 3.11.5 atau lebih baru)
-- Visual Studio dengan modul "Desktop development with C++" (untuk build Windows)
-- Android Studio / Android SDK (untuk build Android)
+### Host Computer (Windows)
+- Operating System: Windows 10 (Version 1809+) or Windows 11 (64-bit)
+- Network: Local Wi-Fi or Ethernet LAN connection
+- Firewall: Port 8945 permitted for inbound local traffic
 
-Periksa kesiapan environment dengan perintah:
+### Mobile Device (Android)
+- Operating System: Android 7.0 (Nougat, API Level 24) or higher
+- Features: Active Wi-Fi and Camera (for QR code scanning)
+
+---
+
+## Running the Application
+
+### 1. Prepare Environment
+Ensure the host development system has:
+- Flutter SDK (3.11.5 or higher)
+- Visual Studio with "Desktop development with C++" workload installed
+- Android SDK installed
+
+Validate environment readiness:
 ```bash
 flutter doctor
 ```
 
-### 2. Mengunduh Dependensi
-Jalankan perintah berikut di direktori proyek:
+### 2. Install Dependencies
 ```bash
 flutter pub get
 ```
 
-### 3. Menjalankan di Komputer Windows (Mode Server Host)
-Buka terminal dan jalankan:
+### 3. Launch on Windows (Host Companion Mode)
 ```bash
 flutter run -d windows
 ```
-Aplikasi akan terbuka dalam jendela Windows Companion dan langsung mengaktifkan server lokal beserta tampilan kode QR.
+The application will launch the companion window, start the local server on port 8945, and display the pairing QR code.
 
-### 4. Menjalankan di Smartphone Android (Mode Controller)
-Hubungkan ponsel Android Anda menggunakan kabel USB (dengan USB Debugging aktif) atau emulator Android, lalu jalankan:
+### 4. Launch on Android (Controller Mode)
+Connect your Android device via USB (with USB Debugging active) and run:
 ```bash
-flutter run -d <nama-perangkat-anda>
+flutter run -d <device-id>
 ```
 
-### 5. Menghubungkan Kedua Perangkat
-1. Pastikan komputer Windows dan ponsel Android terhubung pada jaringan Wi-Fi yang sama.
-2. Pada aplikasi Android, tekan tombol "Hubungkan PC Sekarang" atau pilih ikon pemindai QR.
-3. Arahkan kamera ponsel ke kode QR yang ada di layar komputer Anda, atau gunakan opsi "Deteksi Otomatis PC di Wi-Fi".
-4. Setelah terhubung, indikator status akan berubah menjadi terhubung dan semua fitur pengendali siap digunakan.
+### 5. Establish Connection
+1. Ensure both devices share the same local Wi-Fi subnet.
+2. Tap "Connect PC Now" or open the QR scanner within the Android app.
+3. Aim the camera at the QR code displayed on the Windows monitor.
+4. Once connected, control features activate instantly.
 
 ---
 
-## Pengujian dan Kualitas Kode
+## Author
 
-Aplikasi ini dilengkapi pengujian otomatis dan mengikuti standar analisis kode Flutter:
+Anak Agung Ngurah Krisna Artha Wibawa ([ANTARTICA1](https://github.com/ANTARTICA1))
 
-Menjalankan pengujian unit dan widget:
-```bash
-flutter test
-```
+## License
 
-Menjalankan analisis statis kode:
-```bash
-flutter analyze
-```
+This project is licensed under the MIT License.
