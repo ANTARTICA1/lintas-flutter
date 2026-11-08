@@ -6,10 +6,9 @@ Designed for security, speed, and privacy, all data exchanges, input signals, an
 
 ---
 
-## Application Interface Preview
+## Interface Preview
 
-### Windows Companion Host Dashboard (Port 8945, QR Pairing & Drop Zone)
-![Windows Companion Dashboard](docs/screenshots/lintas.jpg)
+[![Interface Preview Status](https://img.shields.io/badge/Interface_Preview-Documentation_in_Progress-2563eb?style=for-the-badge)](https://github.com/ANTARTICA1/lintas-flutter)
 
 ---
 
